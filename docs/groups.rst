@@ -29,6 +29,7 @@ Below is the list of data groups included in igmspec v03:
 * :doc:`uvpsm4`   [UVpSM4]
 * :doc:`twoqz`   [2QZ]
 * :doc:`esi_z6`   [ESI_z6]
+* :doc:`squad`   [SQUAD_DR1]
 
 Each document provides the survey reference
 and additional details on the spectra and

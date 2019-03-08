@@ -27,14 +27,9 @@ from igmspec.ingest import uves_dall
 from igmspec.ingest import boss_dr14
 from igmspec.ingest import esi_z6
 from igmspec.ingest import kodiaq_two
+from igmspec.ingest import uves_squad
 
-from astropy.table import Table, vstack, Column
-from astropy import units as u
-
-from linetools import utils as ltu
-
-#from igmspec.defs import get_survey_dict
-#survey_dict = get_survey_dict()
+from astropy.table import Table
 
 
 def ver01(test=False, clobber=False, publisher='J.X. Prochaska', **kwargs):
@@ -270,11 +265,8 @@ def ver03(test=False, skip_copy=False, publisher='J.X. Prochaska', clobber=False
     from specdb.specdb import IgmSpec
     # Read v02
     v02file = os.getenv('SPECDB')+'/IGMspec_DB_v02.1.hdf5'
-    #v01file_debug = igmspec.__path__[0]+'/tests/files/IGMspec_DB_v01_debug.hdf5'
-    print("Loading v02")
     igmsp_v02 = IgmSpec(db_file=v02file)
     v02hdf = igmsp_v02.hdf
-    #maindb = igmsp_v02.cat.copy()
 
     # Start new file
     if out_path is None:
@@ -307,7 +299,6 @@ def ver03(test=False, skip_copy=False, publisher='J.X. Prochaska', clobber=False
 
         grp = hdf.create_group(gname)
         # Copy spectra
-        #warnings.warn("GET THE DR14 spectra!")
         igmsp_v030.hdf.copy(gname+'/spec', hdf[gname])
         # Copy meta
         igmsp_v030.hdf.copy(gname+'/meta', hdf[gname])
@@ -317,11 +308,6 @@ def ver03(test=False, skip_copy=False, publisher='J.X. Prochaska', clobber=False
         maindb = sdbbu.add_ids(maindb, meta, flag_g, tkeys, idkey,
                                first=(flag_g==1), close_pairs=(gname in pair_groups),
                                debug=False)
-        #hdf[key+'/meta'] = meta
-        #for akey in v01hdf[key+'/meta'].attrs.keys():
-        #    hdf[key+'/meta'].attrs[akey] = v01hdf[key+'/meta'].attrs[akey]
-        # SSA info
-        #new_groups[gname].add_ssa(hdf, gname)
     else:
         # BOSS DR14
         print("Working on group: {:s}".format(gname))
@@ -401,50 +387,6 @@ def ver03(test=False, skip_copy=False, publisher='J.X. Prochaska', clobber=False
     # Setup groups
     pair_groups = []
 
-    '''
-    # Loop over the old groups to update (as needed)
-    new_IDs = False
-    for gname in redo_groups:
-        print("Working to replace meta/spec for group: {:s}".format(gname))
-        # Meta
-        meta = old_groups[gname].grab_meta()
-        # Group flag
-        flag_g = group_dict[gname]
-        # IDs
-        if new_IDs:
-            pdb.set_trace()  # NOT READY FOR THIS
-            #maindb = sdbbu.add_ids(maindb, meta, flag_g, tkeys, idkey,
-            #                   first=(flag_g==1), close_pairs=(gname in pair_groups))
-        else:
-            _, _, ids = sdbbu.set_new_ids(maindb, meta, idkey)
-        # Spectra
-        old_groups[gname].hdf5_adddata(hdf, gname, meta)
-        old_groups[gname].add_ssa(hdf, gname)
-    '''
-
-    '''
-    meta_only = False
-    # Loop over the new groups
-    for gname in new_groups:
-        print("Working on group: {:s}".format(gname))
-        # Meta
-        meta = new_groups[gname].grab_meta()
-        # Survey flag
-        flag_g = sdbbu.add_to_group_dict(gname, group_dict, skip_for_debug=True)
-        # IDs
-        debug= False
-        #if gname == 'XQ-100':
-        #    debug = True
-        maindb = sdbbu.add_ids(maindb, meta, flag_g, tkeys, idkey,
-                               first=(flag_g==1), close_pairs=(gname in pair_groups),
-                               debug=debug)
-        # Spectra
-        if not meta_only:
-            pdb.set_trace()
-            new_groups[gname].hdf5_adddata(hdf, gname, meta)
-            new_groups[gname].add_ssa(hdf, gname)
-    '''
-
     # Check for duplicates -- There is 1 pair in SDSS (i.e. 2 duplicates)
     if not sdbbu.chk_for_duplicates(maindb, dup_lim=2):
         raise ValueError("Failed duplicates")
@@ -514,6 +456,7 @@ def get_build_groups(version):
         groups['UVpSM4'] = hst_c          # Cooksey et al. 2010, 2011
     elif version == 'v03':
         groups['BOSS_DR14'] = boss_dr14   # Paris et al. 2018
+        groups['SQUAD_DR1'] = uves_squad  # Murphy et al. 2018
         groups['ESI_z6'] = esi_z6         # Eiler et al. 2018
         groups['KODIAQ_DR2'] = kodiaq_two
     else:
